@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument("--checkpoint_dir", type=str, default='./checkpoints', help="Checkpoint directory")
     parser.add_argument("--run_name", required=True)
     parser.add_argument("--use_cuda", type=bool, default=False, help="Use CUDA if available")
+    parser.add_argument("--load_checkpoint", type=bool, default=False, help="Run from checkpoint")
     opt = parser.parse_args()
     if opt.use_cuda:
         opt.use_cuda = torch.cuda.is_available()
@@ -143,7 +144,7 @@ def train(generator, discriminator, adversarial_loss, opt):
                 if batches_done % opt.sample_interval == 0:
                     sample_image(generator, n_row=10, batches_done=batches_done, opt=opt)
             if epoch % opt.save_every == 0:
-                save_loc = os.path.join(opt.checkpoint_dir, opt.run_name, 'last.pth')
+                save_loc = os.path.join(opt.checkpoint_dir, '{}.last.pth'.format(opt.run_name))
                 torch.save({
                     'epoch': epoch,
                     'g_model_state_dict': generator.state_dict(),
