@@ -150,7 +150,8 @@ def train(generator, discriminator, adversarial_loss, opt):
                     'g_model_state_dict': generator.state_dict(),
                     'g_optim_state_dict': optimizer_G.state_dict(),
                     'd_model_state_dict': discriminator.state_dict(),
-                    'd_optim_state_dict': optimizer_D.state_dict()
+                    'd_optim_state_dict': optimizer_D.state_dict(),
+                    'opt': opt
                 }, save_loc)
     return generator, discriminator
 
