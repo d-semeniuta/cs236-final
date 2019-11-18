@@ -126,8 +126,8 @@ def train_test_classifier(train_loader, val_loader, opt):
 
 
 def main():
-    true_data_sizes = [0, 256, 512, 1024, 2048]
-    generated_data_sizes = [0, 256, 512, 1024, 2048]
+    true_data_sizes = [0, 64, 128, 256, 512, 1024]
+    generated_data_sizes = [0, 64, 128, 256, 512, 1024]
     opt = parse_args()
     generator = load_generator(opt)
     if opt.use_cuda:
@@ -142,6 +142,7 @@ def main():
             train_loader = get_train_loader(true_data_size, generated_data_size, opt)
             train_acc, val_acc = train_test_classifier(train_loader, val_loader, opt)
             print('Final train accuracy: {:.3f}\tval accuracy: {:.3f}'.format(train_acc, val_acc))
+            print('')
 
 
 if __name__ == '__main__':

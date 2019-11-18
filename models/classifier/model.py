@@ -11,7 +11,6 @@ import torch.nn.functional as F
 import torch
 
 class ConvBnBlock(nn.Module):
-    # submodule
     # [conv-batchnorm-relu]
     def __init__(self, in_channels, out_channels, kernel_size=5):
         super().__init__()
@@ -23,14 +22,20 @@ class ConvBnBlock(nn.Module):
         x = F.relu(self.batchnorm(x))
         return x
 
-# class ConvPoolBlock(nn.Module):
-#     # [conv-relu-conv-relu-pool]
-#     def __init__(self, in_channels, hidden_channels, out_channels, kernel_size):
-#         super().__init__()
-#         self.conv1 = nn.Conv2d(in_channels, hidden_channels, kernel_size)
-#         self.conv2 = nn.Conv2d(hidden_channels, out_channels, kernel_size)
-
 class MNISTModel(nn.Module):
+    """Simple convolutional classifier for an image dataset
+    Architecture:
+    [conv-batchnorm-relu] x4 -> [linear-relu] -> [linear]
+
+    Parameters
+    ----------
+    opt : dictionary
+        Dictionary of parameters. Required key, values:
+            channels    : number of channels in input image
+            img_size    : size of image
+            n_classes   : number of output labels
+
+    """
     def __init__(self, opt):
         super().__init__()
         in_channel = opt.channels
@@ -53,7 +58,7 @@ class MNISTModel(nn.Module):
             x = conv_block(x)
 
         x = x.view((batch_size, -1))
-        x = self.fc1(x)
+        x = F.relu(self.fc1(x))
         x = self.fc2(x)
 
         return x
