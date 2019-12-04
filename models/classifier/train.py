@@ -7,12 +7,12 @@ import pdb
 
 from models.classifier.evaluate import evaluate_model
 
-def train_model(model, dataloader, opt, epochs=10):
+def train_model(model, dataloader, args, epochs=10):
     optimizer = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-2)
 
-    if opt.use_cuda:
-        model = model.cuda() 
-    device = torch.device('cuda') if opt.use_cuda else torch.device('cpu')
+    if args.use_cuda:
+        model = model.cuda()
+    device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
 
     len_train = epochs * len(dataloader)
     with tqdm(total=len_train) as progress_bar:
@@ -30,5 +30,5 @@ def train_model(model, dataloader, opt, epochs=10):
                 optimizer.step()
                 progress_bar.update(1)
     print('Done training, calculating train acc')
-    acc = evaluate_model(model, dataloader, opt)
+    acc = evaluate_model(model, dataloader, args)
     return model, acc
