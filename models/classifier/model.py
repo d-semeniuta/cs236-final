@@ -29,18 +29,18 @@ class MNISTModel(nn.Module):
 
     Parameters
     ----------
-    opt : dictionary
+    args : dictionary
         Dictionary of parameters. Required key, values:
             channels    : number of channels in input image
             img_size    : size of image
             n_classes   : number of output labels
 
     """
-    def __init__(self, opt):
+    def __init__(self, args):
         super().__init__()
-        in_channel = opt.channels
-        input_size = (opt.img_size, opt.img_size)
-        num_classes = opt.n_classes
+        in_channel = args.channels
+        input_size = (args.img_size, args.img_size)
+        num_classes = args.n_classes
         num_channels = [32, 64, 64, 64]
         self.conv_blocks = nn.ModuleList([ConvBnBlock(in_channel, num_channels[0], 5)])
         self.conv_blocks.extend([ConvBnBlock(num_channels[i], num_channels[i+1], 3)
@@ -63,8 +63,8 @@ class MNISTModel(nn.Module):
 
         return x
 
-def get_MNIST_model(opt):
-    model = MNISTModel(opt)
+def get_MNIST_model(args):
+    model = MNISTModel(args)
     def init_weights(m):
         if type(m) == nn.Conv2d or type(m) == nn.Linear:
             nn.init.kaiming_normal_(m.weight)
