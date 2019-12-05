@@ -47,7 +47,7 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
                 acc = evaluate_model(model, dataloader, args)
                 progress_bar.set_postfix(
                     train_loss=loss.item(),
-                    train_acc=acc
+                    train_acc=acc,
                     epoch=e
                 )
                 writer.add_scalar('train/acc', acc, epoch)
