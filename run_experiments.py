@@ -124,7 +124,6 @@ def main():
     val_loader = util.data.datasetToLoader(val_data, args)
 
     pcts = [0.2, 0.4, 0.6, 0.8, 1.0]
-    pcts = [0.005]
     log_file = os.path.join(args.experiment_dir, 'res.txt')
     tb_dir = os.path.join(args.experiment_dir, 'tb')
     if os.path.isfile(log_file):
