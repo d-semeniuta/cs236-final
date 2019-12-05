@@ -2,8 +2,8 @@ import os
 import argparse
 import pdb
 
-from models.cgan.model import Generator, Discriminator
-from models.cgan.train import train as train_gen
+from models.cdcgan.model import Generator, Discriminator
+from models.cdcgan.train import train as train_gen
 from models.classifier.model import get_MNIST_model
 import models.classifier.train
 import models.classifier.evaluate
@@ -27,9 +27,9 @@ from torchvision.utils import save_image
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training for generator")
+    parser.add_argument("--n_epochs", type=int, default=300, help="number of epochs of training for generator")
     parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
-    parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
+    parser.add_argument("--lr", type=float, default=0.0004, help="adam: learning rate")
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
@@ -57,6 +57,7 @@ def parse_args():
         args.use_cuda = False
     if not os.path.isdir(args.experiment_dir):
         os.makedirs(args.experiment_dir)
+    torch.save(args, os.path.join(args.experiment_dir, 'args.pth'))
     return args
 
 def train_test_classifier(classifier, optimizer, train_loader, val_loader, ckpt_dir, writer, args):
@@ -123,6 +124,7 @@ def main():
     val_loader = util.data.datasetToLoader(val_data, args)
 
     pcts = [0.2, 0.4, 0.6, 0.8, 1.0]
+    pcts = [0.005]
     log_file = os.path.join(args.experiment_dir, 'res.txt')
     tb_dir = os.path.join(args.experiment_dir, 'tb')
     if os.path.isfile(log_file):
