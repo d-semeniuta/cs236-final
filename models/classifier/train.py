@@ -9,7 +9,7 @@ from models.classifier.evaluate import evaluate_model
 
 def train_model(model, optimizer, dataloader, args, writer, epochs=10):
     # optimizer = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-2)
-
+    model.train()
     if args.use_cuda:
         model = model.cuda()
     device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
@@ -47,6 +47,7 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
                 }, save_loc)
             if e % args.eval_every_class == 0:
                 acc = evaluate_model(model, dataloader, args, use_tqdm=False)
+                model.train()
                 progress_bar.set_postfix(
                     train_loss=loss.item(),
                     train_acc=acc,

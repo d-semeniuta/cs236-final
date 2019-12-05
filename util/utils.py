@@ -36,7 +36,7 @@ def generateImages(generator, num_images, args, out_loc):
 
     FloatTensor = torch.cuda.FloatTensor if args.use_cuda else torch.FloatTensor
     LongTensor = torch.cuda.LongTensor if args.use_cuda else torch.LongTensor
-
+    generator.eval()
     batch_size = args.batch_size
     img_per_class = math.ceil(num_images / args.n_classes)
     with torch.no_grad():

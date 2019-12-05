@@ -2,8 +2,10 @@ import os
 import argparse
 import pdb
 
-from models.cdcgan.model import Generator, Discriminator
-from models.cdcgan.train import train as train_gen
+# from models.cdcgan.model import Generator, Discriminator
+# from models.cdcgan.train import train as train_gen
+from models.cdcganV2.model import Generator, Discriminator
+from models.cdcganV2.train import train as train_gen
 from models.classifier.model import get_MNIST_model
 import models.classifier.train
 import models.classifier.evaluate
@@ -34,14 +36,16 @@ def parse_args():
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
     parser.add_argument("--latent_dim", type=int, default=100, help="dimensionality of the latent space")
+    parser.add_argument("--n_filters", type=int, default=128, help="number of filters in G convs")
     parser.add_argument("--n_classes", type=int, default=10, help="number of classes for dataset")
     parser.add_argument("--img_size", type=int, default=32, help="size of each image dimension")
     parser.add_argument("--channels", type=int, default=3, help="number of image channels")
     parser.add_argument("--sample_interval", type=int, default=400, help="interval between image sampling")
     parser.add_argument("--save_every", type=int, default=25, help="interval between saving the model")
     # parser.add_argument("--checkpoint_dir", type=str, default='./checkpoints', help="Checkpoint directory")
-    parser.add_argument("--run_name", required=True)
+    # parser.add_argument("--run_name", required=True)
     parser.add_argument("--no_cuda", action='store_true', help="Use CUDA if available")
+    parser.add_argument("--gen_once", action='store_true', help="Generate images from full training set")
     parser.add_argument("--load_checkpoint", action='store_true', help="Run from checkpoint")
     parser.add_argument("--dataset", type=str, required=True, help="Dataset to run on")
     parser.add_argument("--experiment_dir", type=str, required=True, help="Where to save all outputs")
@@ -114,10 +118,7 @@ def get_classifier(classifier):
     optimizer = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-2)
     return model, optimizer
 
-
-def main():
-    args = parse_args()
-
+def gen_imgs_once(args):
     train_data = util.data.getDataset(args.dataset, args, train=True)
     num_train_sample = len(train_data)
     val_data = util.data.getDataset(args.dataset, args, train=False)
@@ -126,6 +127,9 @@ def main():
     pcts = [0.2, 0.4, 0.6, 0.8, 1.0]
     log_file = os.path.join(args.experiment_dir, 'res.txt')
     tb_dir = os.path.join(args.experiment_dir, 'tb')
+    print('Training generator on {} images...'.format(num_true))
+    gen_data = run_generator(train_data, args.experiment_dir, args)
+
     if os.path.isfile(log_file):
         os.remove(log_file)
     with open(log_file, 'a') as logging:
@@ -134,8 +138,6 @@ def main():
             true_data = util.data.subsampleTrainData(train_data, pct_true)
             true_dir = os.path.join(args.experiment_dir, '{}pct_true'.format(int(pct_true * 100)))
             os.makedirs(true_dir, exist_ok=True)
-            print('Training generator on {} images...'.format(num_true))
-            gen_data = run_generator(true_data, true_dir, args)
             for pct_gen in [0.0] + pcts:
                 num_gen = int(pct_gen * num_true)
                 print('Running with {} true images and {} generated images'.format(num_true, num_gen))
@@ -150,6 +152,50 @@ def main():
                 print('')
                 logging.write('Trained on {} true, {} gen\n'.format(num_true, num_gen))
                 logging.write('  Train acc: {:.3f}\tval accuracy: {:.3f}\n\n'.format(train_acc, val_acc))
+
+def gen_imgs_per_train(args):
+    train_data = util.data.getDataset(args.dataset, args, train=True)
+    num_train_sample = len(train_data)
+    val_data = util.data.getDataset(args.dataset, args, train=False)
+    val_loader = util.data.datasetToLoader(val_data, args)
+
+    true_pcts = [1.0]
+    gen_pcts = [0.0, 0.25, 0.5, 0.75, 1.0]
+    log_file = os.path.join(args.experiment_dir, 'res.txt')
+    tb_dir = os.path.join(args.experiment_dir, 'tb')
+    if os.path.isfile(log_file):
+        os.remove(log_file)
+    with open(log_file, 'a') as logging:
+        for pct_true in true_pcts:
+            num_true = int(pct_true * num_train_sample)
+            true_data = util.data.subsampleTrainData(train_data, pct_true)
+            true_dir = os.path.join(args.experiment_dir, '{}pct_true'.format(int(pct_true * 100)))
+            os.makedirs(true_dir, exist_ok=True)
+            print('Training generator on {} images...'.format(num_true))
+            gen_data = run_generator(true_data, true_dir, args)
+            for pct_gen in gen_pcts:
+                num_gen = int(pct_gen * num_true)
+                print('Running with {} true images and {} generated images'.format(num_true, num_gen))
+                train_loader = util.data.combineDatasets(true_data, gen_data, num_true, num_gen, args)
+                this_classifier, this_optimizer = get_classifier(args.classifier)
+                gen_dir = os.path.join(true_dir, '{}pct_gen'.format(int(pct_gen * 100)))
+                os.makedirs(gen_dir, exist_ok=True)
+                tb_writer_dir = os.path.join(tb_dir, '{}pct_true'.format(int(pct_true * 100)), '{}pct_gen'.format(int(pct_gen * 100)))
+                writer = SummaryWriter(tb_writer_dir)
+                train_acc, val_acc = train_test_classifier(this_classifier, this_optimizer, train_loader, val_loader, gen_dir, writer, args)
+                print('Final train accuracy: {:.3f}\tval accuracy: {:.3f}'.format(train_acc, val_acc))
+                print('')
+                logging.write('Trained on {} true, {} gen\n'.format(num_true, num_gen))
+                logging.write('  Train acc: {:.3f}\tval accuracy: {:.3f}\n\n'.format(train_acc, val_acc))
+
+
+def main():
+    args = parse_args()
+
+    if args.gen_once:
+        gen_imgs_once(args)
+    else:
+        gen_imgs_per_train(args)
 
 if __name__ == '__main__':
     main()

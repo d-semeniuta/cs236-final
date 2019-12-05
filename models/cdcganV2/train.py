@@ -28,6 +28,7 @@ def get_default_args():
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
     parser.add_argument("--latent_dim", type=int, default=100, help="dimensionality of the latent space")
     parser.add_argument("--n_classes", type=int, default=10, help="number of classes for dataset")
+    parser.add_argument("--n_filters", type=int, default=128, help="number of filters in G convs")
     parser.add_argument("--img_size", type=int, default=32, help="size of each image dimension")
     parser.add_argument("--channels", type=int, default=1, help="number of image channels")
     parser.add_argument("--sample_interval", type=int, default=400, help="interval between image sampling")
@@ -63,15 +64,18 @@ def sample_image(generator, *, n_row, batches_done, args):
     """Saves a grid of generated digits ranging from 0 to n_classes"""
     FloatTensor = torch.cuda.FloatTensor if args.use_cuda else torch.FloatTensor
     LongTensor = torch.cuda.LongTensor if args.use_cuda else torch.LongTensor
+    device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
     generator.eval()
-
-    # Sample noise
     with torch.no_grad():
-        z = Variable(FloatTensor(np.random.normal(0, 1, (n_row ** 2, args.latent_dim))))
+        # Sample noise
+        z = torch.randn(n_row**2, args.latent_dim, 1, 1).to(device)
         # Get labels ranging from 0 to n_classes for n rows
         labels = np.array([num for _ in range(n_row) for num in range(n_row)])
         labels = Variable(LongTensor(labels))
-        gen_imgs = generator(z, labels)
+        one_hot_labels = torch.eye(args.n_classes, device=labels.device)[labels]
+        one_hot_labels = one_hot_labels.unsqueeze(dim=-1).unsqueeze(dim=-1) # [batch_size, n_classes, 1, 1]
+        # pdb.set_trace()
+        gen_imgs = generator(z, one_hot_labels)
         out_dir = os.path.join(args.checkpoint_dir, 'samples')
         os.makedirs(out_dir, exist_ok=True)
         out_loc = os.path.join(out_dir, '{}.png'.format(batches_done))
@@ -80,8 +84,6 @@ def sample_image(generator, *, n_row, batches_done, args):
 
 def train(generator, discriminator, adversarial_loss, train_loader, args):
     # dataloader = get_dataloader(args)
-    generator.train()
-    discriminator.train()
 
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
@@ -93,20 +95,27 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
 
     with tqdm(total=len(train_loader)*args.n_epochs) as progress_bar:
         for epoch in range(args.n_epochs):
+            generator.train()
+            discriminator.train()
             for i, (imgs, labels) in enumerate(train_loader):
 
                 batch_size = imgs.shape[0]
 
                 # Adversarial ground truths
                 # valid = Variable(FloatTensor(batch_size).fill_(1.0), requires_grad=False)
-                valid = torch.ones(batch_size, device=device)
+                valid = torch.ones((batch_size,1), device=device)
                 # fake = Variable(FloatTensor(batch_size).fill_(0.0), requires_grad=False)
-                fake = torch.zeros(batch_size, device=device)
+                fake = torch.zeros((batch_size,1), device=device)
 
                 # Configure input
-                real_imgs = Variable(imgs.type(FloatTensor))
-                labels = Variable(labels.type(LongTensor))
-
+                # real_imgs = Variable(imgs.type(FloatTensor))
+                real_imgs = imgs.to(device)
+                # labels = Variable(labels.type(LongTensor))
+                labels = labels.to(device)
+                one_hot_labels = torch.eye(args.n_classes, device=labels.device)[labels]
+                one_hot_labels = one_hot_labels.unsqueeze(dim=-1).unsqueeze(dim=-1) # [batch_size, n_classes, 1, 1]
+                one_hot_labels_exp = one_hot_labels.expand(-1, -1, args.img_size, args.img_size)
+                # pdb.set_trace()
                 # -----------------
                 #  Train Generator
                 # -----------------
@@ -114,15 +123,19 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
                 optimizer_G.zero_grad()
 
                 # Sample noise and labels as generator input
-                z = Variable(FloatTensor(np.random.normal(0, 1, (batch_size, args.latent_dim))))
+                # z = Variable(FloatTensor(np.random.normal(0, 1, (batch_size, args.latent_dim))))
+                z = torch.randn(batch_size, args.latent_dim, 1, 1).to(device)
+
                 # gen_labels = Variable(FloatTensor(np.random.randint(0, args.n_classes, batch_size)))
-                gen_labels = labels
+                # gen_labels = labels
 
                 # Generate a batch of images
-                gen_imgs = generator(z, gen_labels)
+                gen_imgs = generator(z, one_hot_labels)
 
                 # Loss measures generator's ability to fool the discriminator
-                validity = discriminator(gen_imgs, gen_labels)
+                validity = discriminator(gen_imgs, one_hot_labels_exp)
+                validity = validity.squeeze().unsqueeze(-1)
+                # pdb.set_trace()
                 g_loss = adversarial_loss(validity, valid)
 
                 g_loss.backward()
@@ -135,11 +148,11 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
                 optimizer_D.zero_grad()
 
                 # Loss for real images
-                validity_real = discriminator(real_imgs, labels)
+                validity_real = discriminator(real_imgs, one_hot_labels_exp).squeeze().unsqueeze(-1)
                 d_real_loss = adversarial_loss(validity_real, valid)
 
                 # Loss for fake images
-                validity_fake = discriminator(gen_imgs.detach(), gen_labels)
+                validity_fake = discriminator(gen_imgs.detach(), one_hot_labels_exp).squeeze().unsqueeze(-1)
                 d_fake_loss = adversarial_loss(validity_fake, fake)
 
                 # Total discriminator loss
@@ -181,6 +194,8 @@ def mnist_train():
     # Initialize generator and discriminator
     generator = Generator(args)
     discriminator = Discriminator(args)
+    generator.weight_init(mean=0.0, std=0.02)
+    discriminator.weight_init(mean=0.0, std=0.02)
 
     # cuda = torch.cuda.is_available()
     if args.use_cuda:
@@ -192,7 +207,7 @@ def mnist_train():
     generator, discriminator = train(generator, discriminator, adversarial_loss, train_loader, args)
 
 def main():
-    # mnist_train()
+    mnist_train()
     pass
 
 if __name__ == '__main__':
