@@ -28,6 +28,5 @@ def evaluate_model(model, loader, args, use_tqdm=True):
                 _, preds = scores.max(1)
                 num_correct += (preds == y).sum()
                 num_samples += preds.size(0)
-                progress_bar.update(1)
             acc = float(num_correct) / num_samples
     return acc
