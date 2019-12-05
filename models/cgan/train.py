@@ -15,8 +15,9 @@ import torch.nn as nn
 
 from tqdm import tqdm
 
-from model import Generator, Discriminator
-from args import get_cgan_args
+# from model import Generator, Discriminator
+from models.cgan.model import Generator, Discriminator
+# from args import get_cgan_args
 
 def get_mnist_dataloader(args):
     # Configure data loader
@@ -46,7 +47,10 @@ def sample_image(generator, *, n_row, batches_done, args):
     labels = np.array([num for _ in range(n_row) for num in range(n_row)])
     labels = Variable(LongTensor(labels))
     gen_imgs = generator(z, labels)
-    save_image(gen_imgs.data, "images/%d.png" % batches_done, nrow=n_row, normalize=True)
+    out_dir = os.path.join(args.checkpoint_dir, 'samples')
+    os.makedirs(out_dir, exist_ok=True)
+    out_loc = os.path.join(out_dir, '{}.png'.format(batches_done))
+    save_image(gen_imgs.data, out_loc, nrow=n_row, normalize=True)
 
 
 def train(generator, discriminator, adversarial_loss, train_loader, args):
@@ -58,7 +62,7 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
     FloatTensor = torch.cuda.FloatTensor if args.use_cuda else torch.FloatTensor
     LongTensor = torch.cuda.LongTensor if args.use_cuda else torch.LongTensor
 
-    with tqdm(total=len(train_loader)) as progress_bar:
+    with tqdm(total=len(train_loader)*args.n_epochs) as progress_bar:
         for epoch in range(args.n_epochs):
             for i, (imgs, labels) in enumerate(train_loader):
 
@@ -114,15 +118,15 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
 
                 progress_bar.update(1)
                 progress_bar.set_postfix(
-                    epoch=epoch,
+                    epoch=epoch+1,
                     D_Loss=d_loss.item(),
                     G_Loss=g_loss.item()
                 )
-                batches_done = epoch * len(dataloader) + i
+                batches_done = epoch * len(train_loader) + i
                 if batches_done % args.sample_interval == 0:
                     sample_image(generator, n_row=10, batches_done=batches_done, args=args)
             if epoch % args.save_every == 0:
-                save_loc = os.path.join(args.checkpoint_dir, '{}.last.pth'.format(args.run_name))
+                save_loc = os.path.join(args.checkpoint_dir, 'gen.last.pth')
                 torch.save({
                     'epoch': epoch,
                     'g_model_state_dict': generator.state_dict(),

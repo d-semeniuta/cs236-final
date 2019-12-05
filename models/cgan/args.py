@@ -1,3 +1,5 @@
+import argparse
+
 def get_cgan_args():
     parser = argparse.ArgumentParser('CGAN Training')
     parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
