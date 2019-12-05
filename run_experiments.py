@@ -71,7 +71,7 @@ def run_generator(train_data, gen_dir, args):
     if args.use_cuda:
         generator.cuda()
         discriminator.cuda()
-        adversarial_loss.cuda()
+        loss_fn.cuda()
     # train generator
     generator, discriminator = train_gen(generator, discriminator, loss_fn, train_loader, args)
 
