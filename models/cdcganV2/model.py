@@ -71,6 +71,6 @@ class Generator(nn.Module):
         x = torch.cat([x, y], 1)
         x = F.relu(self.deconv2_bn(self.deconv2(x)))
         x = F.relu(self.deconv3_bn(self.deconv3(x)))
-        x = F.tanh(self.deconv4(x))
+        x = torch.tanh(self.deconv4(x))
 
         return x
