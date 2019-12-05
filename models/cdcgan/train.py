@@ -85,6 +85,8 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
     FloatTensor = torch.cuda.FloatTensor if args.use_cuda else torch.FloatTensor
     LongTensor = torch.cuda.LongTensor if args.use_cuda else torch.LongTensor
 
+    device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
+
     with tqdm(total=len(train_loader)*args.n_epochs) as progress_bar:
         for epoch in range(args.n_epochs):
             for i, (imgs, labels) in enumerate(train_loader):
@@ -93,9 +95,9 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
 
                 # Adversarial ground truths
                 # valid = Variable(FloatTensor(batch_size).fill_(1.0), requires_grad=False)
-                valid = torch.ones(batch_size)
+                valid = torch.ones(batch_size, device=device)
                 # fake = Variable(FloatTensor(batch_size).fill_(0.0), requires_grad=False)
-                fake = torch.zeros(batch_size)
+                fake = torch.zeros(batch_size, device=device)
 
                 # Configure input
                 real_imgs = Variable(imgs.type(FloatTensor))
