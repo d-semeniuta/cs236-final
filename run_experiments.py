@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("--experiment_dir", type=str, required=True, help="Where to save all outputs")
     parser.add_argument("--data_dir", type=str, default='./data', help="Data directory")
     parser.add_argument("--n_epochs_class", type=int, default=50, help="number of epochs of training for classifier")
-    parser.add_argument("--save_every_class", type=int, default=20, help="interval between saving the classifier")
+    parser.add_argument("--save_every_class", type=int, default=10, help="interval between saving the classifier")
     parser.add_argument("--eval_every_class", type=int, default=10, help="interval between evaling the classifier")
     parser.add_argument("--classifier", type=str, default='vgg16_bn', help="torch classifier to use")
     args = parser.parse_args()
