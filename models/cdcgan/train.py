@@ -15,8 +15,8 @@ import torch.nn as nn
 
 from tqdm import tqdm
 
-from model import Generator, Discriminator
-# from models.cdcgan.model import Generator, Discriminator
+# from model import Generator, Discriminator
+from models.cdcgan.model import Generator, Discriminator
 
 def get_default_args():
     parser = argparse.ArgumentParser('CDCGAN Training')
@@ -187,7 +187,7 @@ def mnist_train():
     generator, discriminator = train(generator, discriminator, adversarial_loss, train_loader, args)
 
 def main():
-    mnist_train()
+    # mnist_train()
     pass
 
 if __name__ == '__main__':
