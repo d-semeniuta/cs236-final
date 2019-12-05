@@ -18,6 +18,8 @@ from torch.autograd import Variable
 import torch.utils.data
 from torch.utils.data import DataLoader
 
+from tensorboardX import SummaryWriter
+
 from torchvision import datasets
 import torchvision.transforms as transforms
 import torchvision.models
@@ -44,8 +46,9 @@ def parse_args():
     parser.add_argument("--dataset", type=str, required=True, help="Dataset to run on")
     parser.add_argument("--experiment_dir", type=str, required=True, help="Where to save all outputs")
     parser.add_argument("--data_dir", type=str, default='./data', help="Data directory")
-    parser.add_argument("--n_epochs_class", type=int, default=10, help="number of epochs of training for classifier")
-    parser.add_argument("--save_every_class", type=int, default=5, help="interval between saving the classifier")
+    parser.add_argument("--n_epochs_class", type=int, default=40, help="number of epochs of training for classifier")
+    parser.add_argument("--save_every_class", type=int, default=20, help="interval between saving the classifier")
+    parser.add_argument("--eval_every_class", type=int, default=10, help="interval between evaling the classifier")
     parser.add_argument("--classifier", type=str, default='vgg19_bn', help="torch classifier to use")
     args = parser.parse_args()
     if not args.no_cuda:
@@ -56,9 +59,9 @@ def parse_args():
         os.makedirs(args.experiment_dir)
     return args
 
-def train_test_classifier(classifier, optimizer, train_loader, val_loader, ckpt_dir, args):
+def train_test_classifier(classifier, optimizer, train_loader, val_loader, ckpt_dir, writer, args):
     args.checkpoint_dir = ckpt_dir
-    classifier, train_acc = models.classifier.train.train_model(classifier, optimizer, train_loader, args, epochs=args.n_epochs_class)
+    classifier, train_acc = models.classifier.train.train_model(classifier, optimizer, train_loader, args, writer, epochs=args.n_epochs_class)
     print('Done training, now evaluating...')
     val_acc = models.classifier.evaluate.evaluate_model(classifier, val_loader, args)
     return train_acc, val_acc
@@ -109,6 +112,7 @@ def main():
     pcts = [0.2, 0.4, 0.6, 0.8, 1.0]
     pcts = [1e-3]
     log_file = os.path.join(args.experiment_dir, 'res.txt')
+    tb_dir = os.path.join(args.experiment_dir, 'tb')
     if os.path.isfile(log_file):
         os.remove(log_file)
     with open(log_file, 'a') as logging:
@@ -126,7 +130,9 @@ def main():
                 this_classifier, this_optimizer = get_classifier(args.classifier)
                 gen_dir = os.path.join(true_dir, '{}pct_gen'.format(int(pct_gen * 100)))
                 os.makedirs(gen_dir, exist_ok=True)
-                train_acc, val_acc = train_test_classifier(this_classifier, this_optimizer, train_loader, val_loader, gen_dir, args)
+                tb_writer_dir = os.path.join(tb_dir, '{}pct_true'.format(int(pct_true * 100)), '{}pct_gen'.format(int(pct_gen * 100)))
+                writer = SummaryWriter(tb_writer_dir)
+                train_acc, val_acc = train_test_classifier(this_classifier, this_optimizer, train_loader, val_loader, gen_dir, writer, args)
                 print('Final train accuracy: {:.3f}\tval accuracy: {:.3f}'.format(train_acc, val_acc))
                 print('')
                 logging.write('Trained on {} true, {} gen\n'.format(num_true, num_gen))

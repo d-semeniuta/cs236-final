@@ -7,7 +7,7 @@ import torch
 
 from models.classifier.evaluate import evaluate_model
 
-def train_model(model, optimizer, dataloader, args, epochs=10):
+def train_model(model, optimizer, dataloader, args, writer, epochs=10):
     # optimizer = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-2)
 
     if args.use_cuda:
@@ -33,6 +33,8 @@ def train_model(model, optimizer, dataloader, args, epochs=10):
                     train_loss=loss.item(),
                     epoch=e
                 )
+                step = e*len(dataloader) + t
+                writer.add_scalar('train/loss', loss.item(), step)
             if e % args.save_every_class == 0:
                 save_loc = os.path.join(args.checkpoint_dir, 'classifier.last.pth')
                 torch.save({
@@ -41,6 +43,15 @@ def train_model(model, optimizer, dataloader, args, epochs=10):
                     'optim_state_dict': optimizer.state_dict(),
                     'args': args
                 }, save_loc)
+            if e % args.eval_every_class == 0:
+                acc = evaluate_model(model, dataloader, args)
+                progress_bar.set_postfix(
+                    train_loss=loss.item(),
+                    train_acc=acc
+                    epoch=e
+                )
+                writer.add_scalar('train/acc', acc, epoch)
+
     print('Done training, calculating train acc')
     acc = evaluate_model(model, dataloader, args)
     return model, acc
