@@ -44,13 +44,13 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
                     'args': args
                 }, save_loc)
             if e % args.eval_every_class == 0:
-                acc = evaluate_model(model, dataloader, args)
+                acc = evaluate_model(model, dataloader, args, use_tqdm=False)
                 progress_bar.set_postfix(
                     train_loss=loss.item(),
                     train_acc=acc,
                     epoch=e
                 )
-                writer.add_scalar('train/acc', acc, epoch)
+                writer.add_scalar('train/acc', acc, e)
 
     print('Done training, calculating train acc')
     acc = evaluate_model(model, dataloader, args)

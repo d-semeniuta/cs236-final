@@ -67,6 +67,18 @@ def train_test_classifier(classifier, optimizer, train_loader, val_loader, ckpt_
     return train_acc, val_acc
 
 def run_generator(train_data, gen_dir, args):
+    out_loc = os.path.join(gen_dir, 'gen_imgs')
+    if os.path.exists(out_loc):
+        print('Images already generated...')
+        gen_data = datasets.ImageFolder(
+            out_loc,
+            transform=transforms.Compose(
+                [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+            )
+        )
+        return gen_data
+
+    print('Training generator...')
     train_loader = util.data.datasetToLoader(train_data, args)
     args.checkpoint_dir = gen_dir
     generator, discriminator = Generator(args), Discriminator(args)
@@ -80,10 +92,9 @@ def run_generator(train_data, gen_dir, args):
 
     # gen images
     num_images = len(train_data)
-    out_loc = os.path.join(gen_dir, 'gen_imgs')
     print('Generator trained, now generating images in {}'.format(out_loc))
     util.utils.generateImages(generator, num_images, args, out_loc)
-    gen_data = gen = datasets.ImageFolder(
+    gen_data = datasets.ImageFolder(
         out_loc,
         transform=transforms.Compose(
             [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
