@@ -15,6 +15,7 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
     device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
 
     len_train = epochs * len(dataloader)
+    acc = 'no_eval'
     with tqdm(total=len_train) as progress_bar:
         for e in range(epochs):
             for t, (x, y) in enumerate(dataloader):
@@ -31,7 +32,8 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
                 progress_bar.update(1)
                 progress_bar.set_postfix(
                     train_loss=loss.item(),
-                    epoch=e
+                    train_acc=acc,
+                    epoch=e+1
                 )
                 step = e*len(dataloader) + t
                 writer.add_scalar('train/loss', loss.item(), step)
@@ -48,7 +50,7 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
                 progress_bar.set_postfix(
                     train_loss=loss.item(),
                     train_acc=acc,
-                    epoch=e
+                    epoch=e+1
                 )
                 writer.add_scalar('train/acc', acc, e)
 

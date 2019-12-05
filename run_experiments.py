@@ -46,10 +46,10 @@ def parse_args():
     parser.add_argument("--dataset", type=str, required=True, help="Dataset to run on")
     parser.add_argument("--experiment_dir", type=str, required=True, help="Where to save all outputs")
     parser.add_argument("--data_dir", type=str, default='./data', help="Data directory")
-    parser.add_argument("--n_epochs_class", type=int, default=40, help="number of epochs of training for classifier")
+    parser.add_argument("--n_epochs_class", type=int, default=50, help="number of epochs of training for classifier")
     parser.add_argument("--save_every_class", type=int, default=20, help="interval between saving the classifier")
     parser.add_argument("--eval_every_class", type=int, default=10, help="interval between evaling the classifier")
-    parser.add_argument("--classifier", type=str, default='vgg19_bn', help="torch classifier to use")
+    parser.add_argument("--classifier", type=str, default='vgg16_bn', help="torch classifier to use")
     args = parser.parse_args()
     if not args.no_cuda:
         args.use_cuda = torch.cuda.is_available()
@@ -105,6 +105,8 @@ def run_generator(train_data, gen_dir, args):
 def get_classifier(classifier):
     if classifier == 'vgg19_bn':
         model = torchvision.models.vgg19_bn()
+    elif classifier == 'vgg16_bn':
+        model = torchvision.models.vgg16_bn()
     else:
         raise ValueError('Unsupported classifier', classifier)
 
@@ -134,7 +136,7 @@ def main():
             print('Training generator on {} images...'.format(num_true))
             gen_data = run_generator(true_data, true_dir, args)
             for pct_gen in [0.0] + pcts:
-                num_gen = int(pct_gen * num_train_sample)
+                num_gen = int(pct_gen * num_true)
                 print('Running with {} true images and {} generated images'.format(num_true, num_gen))
                 train_loader = util.data.combineDatasets(true_data, gen_data, num_true, num_gen, args)
                 this_classifier, this_optimizer = get_classifier(args.classifier)
