@@ -31,7 +31,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_epochs", type=int, default=300, help="number of epochs of training for generator")
     parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
-    parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
+    parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
@@ -46,6 +46,7 @@ def parse_args():
     # parser.add_argument("--run_name", required=True)
     parser.add_argument("--no_cuda", action='store_true', help="Use CUDA if available")
     parser.add_argument("--gen_once", action='store_true', help="Generate images from full training set")
+    parser.add_argument("--restore_gen", action='store_true', help="Restore generator")
     parser.add_argument("--load_checkpoint", action='store_true', help="Run from checkpoint")
     parser.add_argument("--dataset", type=str, required=True, help="Dataset to run on")
     parser.add_argument("--experiment_dir", type=str, required=True, help="Where to save all outputs")
@@ -71,6 +72,13 @@ def train_test_classifier(classifier, optimizer, train_loader, val_loader, ckpt_
     val_acc = models.classifier.evaluate.evaluate_model(classifier, val_loader, args)
     return train_acc, val_acc
 
+def load_generator(save_dir, args):
+    save_loc = os.path.join(save_dir, 'gen.last.pth')
+    train_dict = torch.load(save_loc)
+    generator = Generator(args)
+    generator.load_state_dict(train_dict['g_model_state_dict'])
+    return generator
+
 def run_generator(train_data, gen_dir, args):
     out_loc = os.path.join(gen_dir, 'gen_imgs')
     if os.path.exists(out_loc):
@@ -82,22 +90,25 @@ def run_generator(train_data, gen_dir, args):
             )
         )
         return gen_data
-
-    print('Training generator...')
-    train_loader = util.data.datasetToLoader(train_data, args)
-    args.checkpoint_dir = gen_dir
-    generator, discriminator = Generator(args), Discriminator(args)
-    loss_fn = torch.nn.MSELoss()
-    if args.use_cuda:
-        generator.cuda()
-        discriminator.cuda()
-        loss_fn.cuda()
-    # train generator
-    generator, discriminator = train_gen(generator, discriminator, loss_fn, train_loader, args)
+    if args.restore_gen:
+        print('Restoring generator from ckpt...')
+        generator = load_generator(gen_dir, args)
+    else:
+        print('Training generator...')
+        train_loader = util.data.datasetToLoader(train_data, args)
+        args.checkpoint_dir = gen_dir
+        generator, discriminator = Generator(args), Discriminator(args)
+        loss_fn = torch.nn.MSELoss()
+        if args.use_cuda:
+            generator.cuda()
+            discriminator.cuda()
+            loss_fn.cuda()
+        # train generator
+        generator, discriminator = train_gen(generator, discriminator, loss_fn, train_loader, args)
+        print('Generator trained, now generating images in {}'.format(out_loc))
 
     # gen images
     num_images = len(train_data)
-    print('Generator trained, now generating images in {}'.format(out_loc))
     util.utils.generateImages(generator, num_images, args, out_loc)
     gen_data = datasets.ImageFolder(
         out_loc,

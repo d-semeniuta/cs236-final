@@ -51,9 +51,13 @@ def generateImages(generator, num_images, args, out_loc):
                     this_batch_size = img_per_class - num_generated
                 else:
                     this_batch_size = batch_size
-                z = Variable(FloatTensor(np.random.normal(0, 1, (this_batch_size, args.latent_dim))))
+                # z = Variable(FloatTensor(np.random.normal(0, 1, (this_batch_size, args.latent_dim))))
+                z = Variable(FloatTensor(np.random.normal(0, 1, (this_batch_size, args.latent_dim, 1, 1))))
                 these_labels = Variable(LongTensor(labels[num_generated:num_generated+this_batch_size]))
-                gen_imgs = generator(z, these_labels)
+                one_hot_labels = torch.eye(args.n_classes, device=these_labels.device)[these_labels]
+                one_hot_labels = one_hot_labels.unsqueeze(dim=-1).unsqueeze(dim=-1)
+                # gen_imgs = generator(z, these_labels)
+                gen_imgs = generator(z, one_hot_labels)
                 for i in range(gen_imgs.size()[0]):
                     out_file = os.path.join(class_out_loc, '{}.png'.format(i+num_generated))
                     save_image(gen_imgs[i,:,:,:], out_file)
