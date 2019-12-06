@@ -26,6 +26,23 @@ def get_true_mnist():
         save_image(imgs.data, "true_mnist.png", nrow=8, normalize=True)
         return
 
+def get_true_cifar10():
+    dataloader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(
+            "../data/cifar10",
+            train=True,
+            download=True,
+            transform=transforms.Compose(
+                [transforms.Resize(32), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+            ),
+        ),
+        batch_size=100,
+        shuffle=False,
+    )
+    for i, (imgs, labels) in enumerate(dataloader):
+        save_image(imgs.data, "true_cifar10.png", nrow=10, normalize=True)
+        return
+
 def generateImages(generator, num_images, args, out_loc):
     print('Beginning to generate images in {}...'.format(out_loc))
     if os.path.exists(out_loc):

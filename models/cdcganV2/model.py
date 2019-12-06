@@ -16,7 +16,6 @@ def normal_init(m, mean, std):
 class Discriminator(nn.Module):
     # initializers
     def __init__(self, opt):
-    # def __init__(self, embed_dim=10, n_filters=128):
         super(Discriminator, self).__init__()
         n_filters = opt.n_filters
         self.conv1_1 = nn.Conv2d(opt.channels, n_filters//2, 4, 2, 1)
@@ -45,7 +44,6 @@ class Discriminator(nn.Module):
 
 class Generator(nn.Module):
     def __init__(self, opt):
-    # def __init__(self, z_dim=100, embed_dim=10, n_filters=128):
         super(Generator, self).__init__()
         n_filters = opt.n_filters
 
