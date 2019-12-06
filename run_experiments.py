@@ -58,6 +58,7 @@ def parse_args():
     args = parser.parse_args()
     if not args.no_cuda:
         args.use_cuda = torch.cuda.is_available()
+        args.device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
     else:
         args.use_cuda = False
     if not os.path.isdir(args.experiment_dir):
@@ -77,6 +78,7 @@ def load_generator(save_dir, args):
     train_dict = torch.load(save_loc)
     generator = Generator(args)
     generator.load_state_dict(train_dict['g_model_state_dict'])
+    generator.to(args.device)
     return generator
 
 def run_generator(train_data, gen_dir, args):
