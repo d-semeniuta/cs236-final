@@ -15,8 +15,8 @@ import torch.nn as nn
 
 from tqdm import tqdm
 
-# from model import Generator, Discriminator
-from models.cdcganV2.model import Generator, Discriminator
+# from model import Generator, Discriminator, weight_init
+# from models.cdcgan.model import Generator, Discriminator
 
 def get_default_args():
     parser = argparse.ArgumentParser('CDCGAN Training')
@@ -115,7 +115,6 @@ def train(generator, discriminator, adversarial_loss, train_loader, args):
                 one_hot_labels = torch.eye(args.n_classes, device=labels.device)[labels]
                 one_hot_labels = one_hot_labels.unsqueeze(dim=-1).unsqueeze(dim=-1) # [batch_size, n_classes, 1, 1]
                 one_hot_labels_exp = one_hot_labels.expand(-1, -1, args.img_size, args.img_size)
-                # pdb.set_trace()
                 # -----------------
                 #  Train Generator
                 # -----------------
@@ -189,13 +188,13 @@ def mnist_train():
     args = get_default_args()
 
     # Loss functions
-    adversarial_loss = torch.nn.MSELoss()
+    adversarial_loss = nn.BCELoss()
 
     # Initialize generator and discriminator
     generator = Generator(args)
     discriminator = Discriminator(args)
-    generator.weight_init(mean=0.0, std=0.02)
-    discriminator.weight_init(mean=0.0, std=0.02)
+    generator.apply(weight_init)
+    discriminator.apply(weight_init)
 
     # cuda = torch.cuda.is_available()
     if args.use_cuda:

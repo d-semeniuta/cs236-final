@@ -4,8 +4,10 @@ import pdb
 
 # from models.cdcgan.model import Generator, Discriminator
 # from models.cdcgan.train import train as train_gen
-from models.cdcganV2.model import Generator, Discriminator
-from models.cdcganV2.train import train as train_gen
+# from models.cdcganV2.model import Generator, Discriminator
+# from models.cdcganV2.train import train as train_gen
+from models.cdcganV3.model import Generator, Discriminator
+from models.cdcganV3.train import train as train_gen
 from models.classifier.model import get_MNIST_model
 import models.classifier.train
 import models.classifier.evaluate
@@ -20,7 +22,7 @@ from torch.autograd import Variable
 import torch.utils.data
 from torch.utils.data import DataLoader
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 from torchvision import datasets
 import torchvision.transforms as transforms
@@ -100,7 +102,8 @@ def run_generator(train_data, gen_dir, args):
         train_loader = util.data.datasetToLoader(train_data, args)
         args.checkpoint_dir = gen_dir
         generator, discriminator = Generator(args), Discriminator(args)
-        loss_fn = torch.nn.MSELoss()
+        # loss_fn = torch.nn.MSELoss()
+        loss_fn = torch.nn.BCELoss()
         if args.use_cuda:
             generator.cuda()
             discriminator.cuda()
