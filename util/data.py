@@ -6,31 +6,31 @@ from torchvision import datasets
 import torchvision.transforms as transforms
 import torch.utils.data
 
-def get_mnist_dataset(args, train):
+def get_mnist_dataset(data_dir, img_size, train):
     return datasets.MNIST(
-        os.path.join(args.data_dir, 'mnist'),
+        os.path.join(data_dir, 'mnist'),
         train=train,
         download=True,
         transform=transforms.Compose(
-            [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+            [transforms.Resize(img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
         ),
     )
 
-def get_cifar10_dataset(args, train):
+def get_cifar10_dataset(data_dir, img_size, train):
     return datasets.CIFAR10(
-        os.path.join(args.data_dir, 'cifar10'),
+        os.path.join(data_dir, 'cifar10'),
         train=train,
         download=True,
         transform=transforms.Compose(
-            [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+            [transforms.Resize(img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
         ),
     )
 
 def getDataset(dataset_name, args, train=True):
     if dataset_name == 'mnist':
-        return get_mnist_dataset(args, train)
+        return get_mnist_dataset(args.data_dir, args.img_size, train)
     elif dataset_name == 'cifar10':
-        return get_cifar10_dataset(args, train)
+        return get_cifar10_dataset(args.data_dir, args.img_size, train)
     else:
         raise ValueError('Unsupported dataset', dataset_name)
 
