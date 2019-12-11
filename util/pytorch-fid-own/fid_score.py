@@ -70,7 +70,9 @@ parser.add_argument('--dims', type=int, default=2048,
 parser.add_argument('-c', '--gpu', default='', type=str,
                     help='GPU to use (leave blank for CPU only)')
 parser.add_argument('--pytorch_dataset', default='', type=str,
-                    help='If using pytorch dataset, unload it')
+                    help='If using pytorch dataset, unpack it')
+parser.add_argument('--res_out', default='', type=str,
+                    help='directory to print results to')
 
 
 def get_activations(files, model, batch_size=50, dims=2048,
@@ -291,4 +293,6 @@ if __name__ == '__main__':
                                           args.batch_size,
                                           args.gpu != '',
                                           args.dims)
+    with open(os.path.join(args.res_out, 'fid.out'), 'w') as f:
+        f.write('FID: {}'.format(fid_value))
     print('FID: ', fid_value)

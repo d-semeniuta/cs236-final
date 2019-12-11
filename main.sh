@@ -7,8 +7,8 @@ python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist
 cd ./util/pytorch-fid-own/
 mkdir -p $MNIST_DIR/50pct_true
 mkdir -p $MNIST_DIR/100pct_true
-python fid_score.py $MNIST_DIR/50pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist > $MNIST_DIR/50pct_true/fid.out
-python fid_score.py $MNIST_DIR/100pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist > $MNIST_DIR/100pct_true/fid.out
+python fid_score.py $MNIST_DIR/50pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist --res_out $MNIST_DIR/50pct_true
+python fid_score.py $MNIST_DIR/100pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist --res_out $MNIST_DIR/100pct_true
 
 cd $REPO_HEAD
 CIFAR_DIR="${REPO_HEAD}/experiments/cifar10"
@@ -16,5 +16,5 @@ python run_experiments.py --experiment_dir experiments/cifar10/ --dataset cifar1
 cd ./util/pytorch-fid-own/
 mkdir -p $CIFAR_DIR/50pct_true
 mkdir -p $CIFAR_DIR/100pct_true
-python fid_score.py $CIFAR_DIR/50pct_true/gen_imgs $REPO_HEAD/data/cifar10/unpacked/ --pytorch_dataset cifar10 > $CIFAR_DIR/50pct_true/fid.out
-python fid_score.py $CIFAR_DIR/100pct_true/gen_imgs $REPO_HEAD/data/cifar10/unpacked/ --pytorch_dataset cifar10 > $CIFAR_DIR/100pct_true/fid.out
+python fid_score.py $CIFAR_DIR/50pct_true/gen_imgs $REPO_HEAD/data/cifar10/unpacked/ --pytorch_dataset cifar10 --res_out $CIFAR_DIR/50pct_true
+python fid_score.py $CIFAR_DIR/100pct_true/gen_imgs $REPO_HEAD/data/cifar10/unpacked/ --pytorch_dataset cifar10 --res_out $CIFAR_DIR/100pct_true
