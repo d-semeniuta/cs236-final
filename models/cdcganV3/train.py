@@ -15,7 +15,7 @@ import torch.nn as nn
 
 from tqdm import tqdm
 
-# from model import Generator, Discriminator, weight_init
+from model import Generator, Discriminator, weight_init
 # from models.cdcgan.model import Generator, Discriminator
 
 def get_default_args():

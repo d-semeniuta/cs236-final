@@ -6,7 +6,7 @@ import pdb
 # from models.cdcgan.train import train as train_gen
 # from models.cdcganV2.model import Generator, Discriminator
 # from models.cdcganV2.train import train as train_gen
-from models.cdcganV3.model import Generator, Discriminator
+from models.cdcganV3.model import Generator, Discriminator, weight_init
 from models.cdcganV3.train import train as train_gen
 from models.classifier.model import get_MNIST_model
 import models.classifier.train
@@ -102,6 +102,8 @@ def run_generator(train_data, gen_dir, args):
         train_loader = util.data.datasetToLoader(train_data, args)
         args.checkpoint_dir = gen_dir
         generator, discriminator = Generator(args), Discriminator(args)
+        generator.apply(weight_init)
+        discriminator.apply(weight_init)
         # loss_fn = torch.nn.MSELoss()
         loss_fn = torch.nn.BCELoss()
         if args.use_cuda:
@@ -175,7 +177,7 @@ def gen_imgs_per_train(args):
     val_data = util.data.getDataset(args.dataset, args, train=False)
     val_loader = util.data.datasetToLoader(val_data, args)
 
-    true_pcts = [1.0]
+    true_pcts = [0.5, 1.0]
     gen_pcts = [0.0, 0.25, 0.5, 0.75, 1.0]
     log_file = os.path.join(args.experiment_dir, 'res.txt')
     tb_dir = os.path.join(args.experiment_dir, 'tb')
