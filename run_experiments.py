@@ -104,8 +104,8 @@ def run_generator(train_data, gen_dir, args):
         generator, discriminator = Generator(args), Discriminator(args)
         generator.apply(weight_init)
         discriminator.apply(weight_init)
-        # loss_fn = torch.nn.MSELoss()
-        loss_fn = torch.nn.BCELoss()
+        loss_fn = torch.nn.MSELoss()
+        # loss_fn = torch.nn.BCELoss()
         if args.use_cuda:
             generator.cuda()
             discriminator.cuda()
