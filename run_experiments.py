@@ -117,11 +117,12 @@ def run_generator(train_data, gen_dir, args):
     # gen images
     num_images = len(train_data)
     util.utils.generateImages(generator, num_images, args, out_loc)
+    transform_list = [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+    if args.channels == 1:
+        transform_list.append(transforms.Lambda(lambda x: x.expand(3, -1, -1))
     gen_data = datasets.ImageFolder(
         out_loc,
-        transform=transforms.Compose(
-            [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-        )
+        transform=transforms.Compose(transform_list)
     )
     return gen_data
 
@@ -177,7 +178,7 @@ def gen_imgs_per_train(args):
     val_data = util.data.getDataset(args.dataset, args, train=False)
     val_loader = util.data.datasetToLoader(val_data, args)
 
-    true_pcts = [0.5, 1.0]
+    true_pcts = [0.1, 0.5, 1.0]
     gen_pcts = [0.0, 0.25, 0.5, 0.75, 1.0]
     log_file = os.path.join(args.experiment_dir, 'res.txt')
     tb_dir = os.path.join(args.experiment_dir, 'tb')
