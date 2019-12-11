@@ -4,7 +4,7 @@ set -e
 REPO_HEAD=$(pwd)
 
 MNIST_DIR="${REPO_HEAD}/experiments/mnist"
-python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist --channels 1
+python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist --channels 1 --n_epochs 50
 cd ./util/pytorch-fid-own/
 mkdir -p $MNIST_DIR/50pct_true
 mkdir -p $MNIST_DIR/100pct_true
@@ -13,7 +13,7 @@ python fid_score.py $MNIST_DIR/100pct_true/gen_imgs $REPO_HEAD/data/mnist/unpack
 
 cd $REPO_HEAD
 CIFAR_DIR="${REPO_HEAD}/experiments/cifar10"
-python run_experiments.py --experiment_dir experiments/cifar10/ --dataset cifar10
+python run_experiments.py --experiment_dir experiments/cifar10/ --dataset cifar10 --n_epochs 250
 cd ./util/pytorch-fid-own/
 mkdir -p $CIFAR_DIR/50pct_true
 mkdir -p $CIFAR_DIR/100pct_true
