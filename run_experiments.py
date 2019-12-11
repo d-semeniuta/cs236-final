@@ -57,6 +57,7 @@ def parse_args():
     parser.add_argument("--save_every_class", type=int, default=10, help="interval between saving the classifier")
     parser.add_argument("--eval_every_class", type=int, default=10, help="interval between evaling the classifier")
     parser.add_argument("--classifier", type=str, default='vgg16_bn', help="torch classifier to use")
+    parser.add_argument("--restore_class", action='store_true', help="torch classifier to use")
     args = parser.parse_args()
     if not args.no_cuda:
         args.use_cuda = torch.cuda.is_available()
@@ -175,6 +176,17 @@ def gen_imgs_once(args):
                 logging.write('Trained on {} true, {} gen\n'.format(num_true, num_gen))
                 logging.write('  Train acc: {:.3f}\tval accuracy: {:.3f}\n\n'.format(train_acc, val_acc))
 
+def restore_classifier(classifier, optimizer, *, ckpt_dir, args):
+    ckpt_loc = os.path.join(ckpt_dir, 'classifier.last.pth')
+    if not os.path.isfile(ckpt_loc):
+        print('Nothing to restore...')
+        return
+    checkpoint = torch.load(os.path.join(ckpt_dir, 'classifier.last.pth'))
+    classifier.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optim_state_dict'])
+    args.cur_epoch = checkpoint['epoch']
+    print('Model loaded, will restart from epoch {}'.format(args.cur_epoch))
+
 def gen_imgs_per_train(args):
     train_data = util.data.getDataset(args.dataset, args, train=True)
     num_train_sample = len(train_data)
@@ -202,6 +214,10 @@ def gen_imgs_per_train(args):
                 this_classifier, this_optimizer = get_classifier(args.classifier)
                 gen_dir = os.path.join(true_dir, '{}pct_gen'.format(int(pct_gen * 100)))
                 os.makedirs(gen_dir, exist_ok=True)
+                args.cur_epoch = 0
+                if args.restore_class:
+                    print('Restoring classifier from checkpoint...')
+                    restore_classifier(this_classifier, this_optimizer, ckpt_dir=gen_dir, args=args)
                 tb_writer_dir = os.path.join(tb_dir, '{}pct_true'.format(int(pct_true * 100)), '{}pct_gen'.format(int(pct_gen * 100)))
                 writer = SummaryWriter(tb_writer_dir)
                 train_acc, val_acc = train_test_classifier(this_classifier, this_optimizer, train_loader, val_loader, gen_dir, writer, args)
