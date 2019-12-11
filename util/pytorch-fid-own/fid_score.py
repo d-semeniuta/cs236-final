@@ -286,7 +286,10 @@ def unpack_dataset(dataset, path):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+
+    args.use_cuda = torch.cuda.is_available()
+    args.device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
+    # os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     paths = args.path
     dataset = args.pytorch_dataset
@@ -295,7 +298,7 @@ if __name__ == '__main__':
 
     fid_value = calculate_fid_given_paths(paths,
                                           args.batch_size,
-                                          args.gpu != '',
+                                          args.use_cuda,
                                           args.dims)
     with open(os.path.join(args.res_out, 'fid.out'), 'w') as f:
         f.write('FID: {}'.format(fid_value))

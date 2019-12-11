@@ -43,6 +43,38 @@ def get_true_cifar10():
         save_image(imgs.data, "true_cifar10.png", nrow=10, normalize=True)
         return
 
+def get_row_cifar10():
+    dataloader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(
+            "../data/cifar10",
+            train=True,
+            download=True,
+            transform=transforms.Compose(
+                [transforms.Resize(32), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+            ),
+        ),
+        batch_size=100,
+        shuffle=False,
+    )
+    found_labels = set()
+    imgs_to_save = torch.zeros(10, 3, 32, 32)
+    for i, (imgs, labels) in enumerate(dataloader):
+        for j, label in enumerate(labels.split(1)):
+            label = label.item()
+            if label not in found_labels:
+                found_labels.add(label)
+                imgs_to_save[label,:,:,:] = imgs[j,:,:,:]
+            if len(found_labels) == 10:
+                break
+        else:
+            continue
+        break
+
+    save_image(imgs_to_save.data, "row_cifar10.png", nrow=10, normalize=True)
+    return
+get_row_cifar10()
+
+
 def generateImages(generator, num_images, args, out_loc):
     print('Beginning to generate images in {}...'.format(out_loc))
     if os.path.exists(out_loc):
