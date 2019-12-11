@@ -46,7 +46,7 @@ from scipy.misc import imread
 from torch.nn.functional import adaptive_avg_pool2d
 
 sys.path.append("..")
-from data import get_cifar10_dataset
+from data import get_cifar10_dataset, get_mnist_dataset
 from torchvision.utils import save_image
 
 try:
