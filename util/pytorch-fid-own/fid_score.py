@@ -232,10 +232,14 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
         m, s = f['mu'][:], f['sigma'][:]
         f.close()
     else:
+        sv_path = os.path.join(path, 'stats.npz')
         path = pathlib.Path(path)
         files = list(path.rglob('*.jpg')) + list(path.rglob('*.png'))
         m, s = calculate_activation_statistics(files, model, batch_size,
                                                dims, cuda)
+        np.savez(sv_path, mu=m, sigma=s)
+
+
 
     return m, s
 
@@ -266,9 +270,9 @@ def unpack_dataset(dataset, path):
         return
     print('Unpacking {} to {}'.format(dataset, path))
     if dataset == 'cifar10':
-        dataset = get_cifar10_dataset('../../data/', 32, train=True)
+        dataset = get_cifar10_dataset('../../data/', 32, train=False)
     elif dataset == 'mnist':
-        dataset = get_mnist_dataset('../../data', 32, train=True)
+        dataset = get_mnist_dataset('../../data', 32, train=False)
     else:
         raise ValueError('Unsupported dataset', dataset)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
