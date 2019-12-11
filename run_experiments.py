@@ -87,11 +87,12 @@ def run_generator(train_data, gen_dir, args):
     out_loc = os.path.join(gen_dir, 'gen_imgs')
     if os.path.exists(out_loc):
         print('Images already generated...')
+        transform_list = [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+        if args.channels == 1:
+            transform_list.insert(0, transforms.Grayscale(3))
         gen_data = datasets.ImageFolder(
             out_loc,
-            transform=transforms.Compose(
-                [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-            )
+            transform=transforms.Compose(transform_list)
         )
         return gen_data
     if args.restore_gen:
