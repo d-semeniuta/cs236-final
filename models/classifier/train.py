@@ -57,7 +57,13 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
                     epoch=e+1
                 )
                 writer.add_scalar('train/acc', acc, e)
-
+    save_loc = os.path.join(args.checkpoint_dir, 'classifier.final.pth')
+    torch.save({
+        'epoch': e,
+        'model_state_dict': model.state_dict(),
+        'optim_state_dict': optimizer.state_dict(),
+        'args': args
+    }, save_loc)
     print('Done training, calculating train acc')
     acc = evaluate_model(model, dataloader, args)
     return model, acc

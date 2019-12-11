@@ -64,6 +64,7 @@ def parse_args():
         args.device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
     else:
         args.use_cuda = False
+        args.device = torch.device('cpu')
     if not os.path.isdir(args.experiment_dir):
         os.makedirs(args.experiment_dir)
     torch.save(args, os.path.join(args.experiment_dir, 'args.pth'))
@@ -183,6 +184,7 @@ def restore_classifier(classifier, optimizer, *, ckpt_dir, args):
         return
     checkpoint = torch.load(os.path.join(ckpt_dir, 'classifier.last.pth'))
     classifier.load_state_dict(checkpoint['model_state_dict'])
+    classifier.to(args.device)
     optimizer.load_state_dict(checkpoint['optim_state_dict'])
     args.cur_epoch = checkpoint['epoch']
     print('Model loaded, will restart from epoch {}'.format(args.cur_epoch))
