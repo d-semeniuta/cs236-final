@@ -1,9 +1,10 @@
 #!/bin/bash/
+set -e
 
 REPO_HEAD=$(pwd)
 
 MNIST_DIR="${REPO_HEAD}/experiments/mnist"
-python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist
+python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist --channels 1
 cd ./util/pytorch-fid-own/
 mkdir -p $MNIST_DIR/50pct_true
 mkdir -p $MNIST_DIR/100pct_true
