@@ -88,9 +88,9 @@ def run_generator(train_data, gen_dir, args):
     if os.path.exists(out_loc):
         print('Images already generated...')
         transform_list = [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-        if args.channels == 1:
-            transform_list.append(transforms.Lambda(lambda image: image.convert('RGB')))
-            # transform_list.insert(0, transforms.Grayscale(3))
+        # if args.channels == 1:
+        #     transform_list.append(transforms.Lambda(lambda image: image.convert('RGB')))
+        #     # transform_list.insert(0, transforms.Grayscale(3))
         gen_data = datasets.ImageFolder(
             out_loc,
             transform=transforms.Compose(transform_list)
@@ -120,9 +120,9 @@ def run_generator(train_data, gen_dir, args):
     num_images = len(train_data)
     util.utils.generateImages(generator, num_images, args, out_loc)
     transform_list = [transforms.Resize(args.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-    if args.channels == 1:
-        transform_list.append(transforms.Lambda(lambda image: image.convert('RGB')))
-        # transform_list.insert(0, transforms.Grayscale(3))
+    # if args.channels == 1:
+    #     transform_list.append(transforms.Lambda(lambda image: image.convert('RGB')))
+    #     # transform_list.insert(0, transforms.Grayscale(3))
     gen_data = datasets.ImageFolder(
         out_loc,
         transform=transforms.Compose(transform_list)

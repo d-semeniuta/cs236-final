@@ -3,13 +3,13 @@ set -e
 
 REPO_HEAD=$(pwd)
 
-MNIST_DIR="${REPO_HEAD}/experiments/mnist"
-python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist --channels 1 --n_epochs 50
-cd ./util/pytorch-fid-own/
-mkdir -p $MNIST_DIR/50pct_true
-mkdir -p $MNIST_DIR/100pct_true
-python fid_score.py $MNIST_DIR/50pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist --res_out $MNIST_DIR/50pct_true
-python fid_score.py $MNIST_DIR/100pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist --res_out $MNIST_DIR/100pct_true
+# MNIST_DIR="${REPO_HEAD}/experiments/mnist"
+# python run_experiments.py --experiment_dir $MNIST_DIR --dataset mnist --channels 1 --n_epochs 50
+# cd ./util/pytorch-fid-own/
+# mkdir -p $MNIST_DIR/50pct_true
+# mkdir -p $MNIST_DIR/100pct_true
+# python fid_score.py $MNIST_DIR/50pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist --res_out $MNIST_DIR/50pct_true
+# python fid_score.py $MNIST_DIR/100pct_true/gen_imgs $REPO_HEAD/data/mnist/unpacked/ --pytorch_dataset mnist --res_out $MNIST_DIR/100pct_true
 
 cd $REPO_HEAD
 CIFAR_DIR="${REPO_HEAD}/experiments/cifar10"
