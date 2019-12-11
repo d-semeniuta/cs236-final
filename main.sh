@@ -13,7 +13,7 @@ REPO_HEAD=$(pwd)
 
 cd $REPO_HEAD
 CIFAR_DIR="${REPO_HEAD}/experiments/cifar10"
-python run_experiments.py --experiment_dir experiments/cifar10/ --dataset cifar10 --n_epochs 250
+python run_experiments.py --experiment_dir experiments/cifar10/ --dataset cifar10 --n_epochs 250 --restore_class
 cd ./util/pytorch-fid-own/
 mkdir -p $CIFAR_DIR/50pct_true
 mkdir -p $CIFAR_DIR/100pct_true

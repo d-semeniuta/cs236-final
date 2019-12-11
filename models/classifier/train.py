@@ -13,11 +13,14 @@ def train_model(model, optimizer, dataloader, args, writer, epochs=10):
     if args.use_cuda:
         model = model.cuda()
     device = torch.device('cuda') if args.use_cuda else torch.device('cpu')
-
+    cur_epoch = args.cur_epoch
     len_train = epochs * len(dataloader)
     acc = 'no_eval'
     with tqdm(total=len_train) as progress_bar:
-        for e in range(epochs):
+        if cur_epoch > 0:
+            print('Running from ckpt')
+            progress_bar.update(cur_epoch * len(dataloader))
+        for e in range(cur_epoch, epochs):
             for t, (x, y) in enumerate(dataloader):
                 model.train()
                 x = x.to(device=device, dtype=torch.float32)
